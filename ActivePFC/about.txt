@@ -1,0 +1,47 @@
+This code implements a Single-Stage Power Factor Correction (PFC)
+and Switch-Mode Power Supply (SMPS) system using Zero-Cross detection
+to synchronize with an AC sine wave. 
+It dynamically adjusts the Pulse Width Modulation (PWM) 
+using a Lookup Table (LUT) and a feedback loop to stabilize power output.
+
+Key Features and Components:
+
+- MicroPython & Raspberry Pi Pico- Uses MicroPython for real-time processing.
+- Overclocking is possible (freq(150000000)) for performance tuning.
+
+- PWM & Duty Cycle Control- 16-bit PWM resolution for precise duty cycle adjustments.
+- LUT-based duty cycle modulation synchronized with the AC waveform.
+- Duty cycle scaling via feedback (duty_scale dynamically adjusts).
+
+- Zero-Cross Detection for AC Synchronization- Zero-Cross (ZC) detection pin (Pin(22)) identifies AC cycle transitions.
+- Adjusts the PWM LUT index to align with AC waveform phase (phase_offset).
+- Implements debouncing (2ms delay) to filter out erroneous triggers.
+
+- Lookup Table (LUT) for PWM Shaping- Generates sinusoidal duty cycle modulation to match AC wave characteristics.
+- LUT contains 200 points per full cycle (≈16.67ms).
+- Ensures phase-accurate PWM control.
+
+- Feedback Loop for Dynamic Adjustments- Measures voltage feedback (ADC(26)).
+- Adjusts duty cycle proportionally (k_p = 100).
+- Ensures stable output based on target voltage (1.525V).
+
+- Interrupts for Real-Time Response- Zero-Cross Interrupt: Handles AC phase synchronization.
+- PWM Update Interrupt: Dynamically updates duty cycle.
+- Feedback Interrupt: Adjusts voltage regulation dynamically.
+
+- Debugging & Signal Monitoring- Scope trigger (Pin(16)) for signal verification.
+- Debug prints for LUT updates and timing metrics (print(lut)).
+
+
+How It Works in a Loop:
+- Detects Zero-Crossing to sync PWM with AC.
+- Uses a precomputed LUT for sinusoidal duty cycle shaping.
+- Applies feedback correction based on measured voltage.
+- Updates PWM duty cycle dynamically for precise power factor correction.
+
+This approach ensures efficient AC-DC conversion, reduces harmonics, and
+improves overall power factor. 
+
+
+
+
