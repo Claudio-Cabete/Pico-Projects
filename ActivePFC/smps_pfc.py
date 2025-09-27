@@ -3,7 +3,7 @@ This Code was created by Claudio Cabete with assistance from Grok. May 2025
 Code for Single Stage PFC/SMPS using Zero_Cross detection as a way to lock in with AC sine wave,
 It uses LUT for dynamimc pulse width.
 It uses Feedback loop to apply a bias to the width from the LUT
-
+https://homatica.cc/projects/pfc-controller
 """
 
 from machine import Pin, PWM, ADC, Timer, freq
