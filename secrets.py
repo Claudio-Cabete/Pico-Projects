@@ -1,0 +1,1 @@
+secrets = {'your 1st wifi SID':'your 1st wifi pass','your 2nd wifi SID':'your 2nd wifi pass','your 3rd wifi SID':'your 3rd wifi pass'}
