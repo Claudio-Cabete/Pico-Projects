@@ -1,0 +1,1 @@
+apihosts = ['your IOT API IPs']
