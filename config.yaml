@@ -1,0 +1,6 @@
+db:
+  password: You Database Password
+
+mqtt:
+  password: your MQTT Password
+

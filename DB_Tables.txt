@@ -1,0 +1,41 @@
+CREATE TABLE `devices` (
+  `eid` int(11) NOT NULL AUTO_INCREMENT,
+  `mac` varchar(50) DEFAULT NULL,
+  `ip` varchar(15) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `device_type` varchar(50) DEFAULT NULL,
+  `updated` datetime DEFAULT NULL,
+  `last_seen` datetime DEFAULT NULL,
+  `refrsh_int` int(11) DEFAULT NULL,
+  `device_grp` varchar(50) DEFAULT NULL,
+  `mqtt_input_topic` varchar(255) DEFAULT NULL,
+  `mqtt_output_topic` varchar(255) DEFAULT NULL,
+  `mqtt_acked_output_topic` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`eid`)
+)
+
+Sample Data:
+"eid","mac","ip","name","device_type","updated","last_seen","refrsh_int","device_grp","mqtt_input_topic","mqtt_output_topic","mqtt_acked_output_topic"
+2,"28:cd:c1:0c:63:ce","192.168.1.157",BedRoom Thermostat,pico_w,2025-09-01 15:31:41.000,2025-09-23 18:39:21.000,5,HVAC,hvac/bedroom/inputs,hvac/bedroom/outputs,hvac/bedroom/outputs/acked
+
+
+
+
+CREATE TABLE `device_io_config` (
+  `eid` int(11) NOT NULL AUTO_INCREMENT,
+  `device_id` int(11) DEFAULT NULL,
+  `ioid` varchar(10) DEFAULT NULL,
+  `io_name` varchar(50) DEFAULT NULL,
+  `io_description` varchar(255) DEFAULT NULL,
+  `io_type` varchar(20) DEFAULT NULL,
+  `io_mode` varchar(10) DEFAULT NULL,
+  `updated` datetime DEFAULT NULL,
+  PRIMARY KEY (`eid`)
+) 
+
+Sample Data:
+"eid","device_id","ioid","io_name","io_description","io_type","io_mode","updated"
+3,2,"25",LED,LED,LED,OUT,2025-08-01 17:23:40.000
+4,2,"4",Internal Temperature,Internal Temperature,ADC,IN,2025-08-01 17:23:40.000
+5,2,"22",Ambient Temperature,Ambient Temperature,DS18x20,IN,2025-08-15 16:54:45.000
+6,2,"9",Test LED,Test LED,manual,OUT,2025-08-01 18:23:38.000
