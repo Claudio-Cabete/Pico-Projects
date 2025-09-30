@@ -24,7 +24,7 @@ Sample Data:
 CREATE TABLE `device_io_config` (
   `eid` int(11) NOT NULL AUTO_INCREMENT,
   `device_id` int(11) DEFAULT NULL,
-  `ioid` varchar(10) DEFAULT NULL,
+  `ioid` varchar(555) DEFAULT NULL,
   `io_name` varchar(50) DEFAULT NULL,
   `io_description` varchar(255) DEFAULT NULL,
   `io_type` varchar(20) DEFAULT NULL,
@@ -36,6 +36,7 @@ CREATE TABLE `device_io_config` (
 Sample Data:
 "eid","device_id","ioid","io_name","io_description","io_type","io_mode","updated"
 3,2,"25",LED,LED,LED,OUT,2025-08-01 17:23:40.000
-4,2,"4",Internal Temperature,Internal Temperature,ADC,IN,2025-08-01 17:23:40.000
-5,2,"22",Ambient Temperature,Ambient Temperature,DS18x20,IN,2025-08-15 16:54:45.000
-6,2,"9",Test LED,Test LED,manual,OUT,2025-08-01 18:23:38.000
+4,2,"4",Internal Temperature, Internal Temperature,ADC,IN,2025-08-01 17:23:40.000
+5,2,"22",Ambient Temperature, Ambient Temperature,DS18x20,IN,2025-08-15 16:54:45.000
+6,2,"9",Test LED, Test LED,manual,OUT,2025-08-01 18:23:38.000
+7,8,{"SCL":9, "SDA":8},Temperature and Humidity, Temperature and Humidity,AHT20,IN,2025-08-18 15:09:11.000
