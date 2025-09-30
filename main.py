@@ -24,8 +24,18 @@ from onewire import OneWire as ow
 from ds18x20 import DS18X20 as ds
 import gc
 from umqtt.simple import MQTTClient
+from aht20 import AHT20
+
 
 wdt = m.WDT(timeout=8387)
+
+"""
+class DummyWDT:
+    def feed(self):
+        pass  # This does nothing, just a placeholder
+wdt = DummyWDT()
+"""
+
 rp2.country('US')
 
 args = {
@@ -58,6 +68,7 @@ io_conf = {}
 device_outputs = {}
 ds18x20_devices = {}
 gpio_initialized = {}
+aht20_devices = {}
 
 def log_error(message):
     try:
@@ -265,7 +276,7 @@ def register(args):
     return results
 
 def init_gpio_ports(args, io_conf):
-    global ds18x20_devices, gpio_initialized
+    global ds18x20_devices, gpio_initialized, aht20_devices
     for ioid in io_conf:
         if ioid in gpio_initialized:
             continue
@@ -299,6 +310,19 @@ def init_gpio_ports(args, io_conf):
                     else:
                         log_error(f"No DS18x20 devices found on pin {ioid}")
                     print(f"Initialized DS18x20 on pin {ioid}")
+                elif tmp['io_type'] == 'AHT20':
+                    try:
+                        pinmap = ujson.loads(ioid)
+                        scl = int(pinmap['SCL'])
+                        sda = int(pinmap['SDA'])
+                        i2c = m.I2C(0, scl=m.Pin(scl), sda=m.Pin(sda))
+                        aht20_devices[ioid] = AHT20(i2c)
+                        print(f"Initialized AHT20 on SCL={scl}, SDA={sda}")
+                    except Exception as e:
+                        log_error(f"AHT20 init error for {ioid}: {e}")
+                        if args.get('printerr'):
+                            print(f"AHT20 init error for {ioid}: {e}")
+
             gpio_initialized[ioid] = True
         except Exception as e:
             log_error(f"GPIO init error for pin {ioid}: {e}")
@@ -353,44 +377,67 @@ def get_device_io_config(args):
     return results
 
 def read_input_vals(args, io_conf):
+    global ds18x20_devices, aht20_devices
     input_vals = {}
-    for ioid in io_conf:
-        tmp = io_conf[ioid]
+
+    for raw_ioid in io_conf:
+        tmp = io_conf[raw_ioid]
         if tmp['io_mode'] == 'IN' and tmp['io_type'] != 'manual':
             start_time = utime.ticks_ms()
+
             if tmp['io_type'] == 'ADC':
                 try:
-                    adc = m.ADC(int(ioid))
+                    adc = m.ADC(int(raw_ioid))
                     tmp['io_v'] = adc.read_u16()
                     tmp['io_freq'] = ''
                     tmp['io_duty'] = ''
-                    if ioid == '4':
+                    if raw_ioid == '4':
                         tmp['io_v'] = 27 - (((tmp['io_v'] * (3.3 / 65536)) - 0.706) / 0.001721)
-                    input_vals[ioid] = tmp
+                    input_vals[raw_ioid] = tmp
                 except Exception as e:
-                    log_error(f"ADC error for IO {ioid}: {e}")
-                    if args['printerr']:
-                        print(f"ADC error for IO {ioid}: {e}")
+                    log_error(f"ADC error for IO {raw_ioid}: {e}")
+                    if args.get('printerr'):
+                        print(f"ADC error for IO {raw_ioid}: {e}")
+
             elif tmp['io_type'] == 'DS18x20':
                 try:
                     tmp['io_v'] = 0
                     tmp['io_freq'] = ''
                     tmp['io_duty'] = ''
-                    if ioid in ds18x20_devices:
-                        dsd, device = ds18x20_devices[ioid]
+                    if raw_ioid in ds18x20_devices:
+                        dsd, device = ds18x20_devices[raw_ioid]
                         dsd.convert_temp()
                         utime.sleep_ms(750)
                         tmp['io_v'] = dsd.read_temp(device)
                     else:
-                        log_error(f"No DS18x20 devices cached for pin {ioid}")
-                    input_vals[ioid] = tmp
+                        log_error(f"No DS18x20 devices cached for pin {raw_ioid}")
+                    input_vals[raw_ioid] = tmp
                 except Exception as e:
-                    log_error(f"DS18x20 read error for IO {ioid}: {e}")
-                    if args['printerr']:
-                        print(f"DS18x20 read error for IO {ioid}: {e}")
-            print(f"Read IO {ioid} took {utime.ticks_diff(utime.ticks_ms(), start_time)}ms")
-    if args['printdebug']:
+                    log_error(f"DS18x20 read error for IO {raw_ioid}: {e}")
+                    if args.get('printerr'):
+                        print(f"DS18x20 read error for IO {raw_ioid}: {e}")
+
+            elif tmp['io_type'] == 'AHT20':
+                try:
+                    sensor = aht20_devices.get(raw_ioid)
+                    if sensor:
+                        temp, hum = sensor.read_data()
+                        tmp['io_v'] = {'temperature': temp, 'humidity': hum}
+                        tmp['io_freq'] = ''
+                        tmp['io_duty'] = ''
+                        input_vals[raw_ioid] = tmp
+                    else:
+                        log_error(f"No AHT20 sensor found for IO {raw_ioid}")
+                except Exception as e:
+                    log_error(f"AHT20 read error for IO {raw_ioid}: {e}")
+                    if args.get('printerr'):
+                        print(f"AHT20 read error for IO {raw_ioid}: {e}")
+
+            print(f"Read IO {raw_ioid} took {utime.ticks_diff(utime.ticks_ms(), start_time)}ms")
+
+    if args.get('printdebug'):
         print(f"read_input_vals: {input_vals}")
+
     return input_vals
 
 def apply_outputs(args, device_outputs):
